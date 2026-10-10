@@ -153,20 +153,34 @@ it.each(webRuntimeCancellationCases)(
     });
     const closed = once(child, "close");
     let stdout = "";
+    let stderr = "";
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (chunk: string) => {
       stdout += chunk;
     });
-    const timeout = setTimeout(() => child.kill("SIGKILL"), 10_000);
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
     try {
       let contactTimeout: NodeJS.Timeout | undefined;
       try {
         await Promise.race([
           contacted,
+          closed.then(([exitCode, terminationSignal]) => {
+            throw new Error(
+              `CLI exited before contacting the CDP fixture (code ${String(exitCode)}, signal ${String(terminationSignal)}): ${stderr}`,
+            );
+          }),
           new Promise<never>((_resolve, reject) => {
             contactTimeout = setTimeout(
-              () => reject(new Error("CLI did not contact the CDP fixture")),
-              5_000,
+              () =>
+                reject(
+                  new Error(
+                    `CLI did not contact the CDP fixture within 20s: ${stderr}`,
+                  ),
+                ),
+              20_000,
             );
           }),
         ]);
@@ -174,16 +188,34 @@ it.each(webRuntimeCancellationCases)(
         if (contactTimeout !== undefined) clearTimeout(contactTimeout);
       }
       child.kill(signal);
-      const [exitCode, terminationSignal] = await closed;
-      expect(terminationSignal).toBeNull();
-      expect(exitCode).toBe(expectedExitCode);
-      expect(JSON.parse(stdout)).toMatchObject({
-        code: "cancelled",
-        category: "cancelled",
-        details: { cleanup: "complete" },
-      });
+      let cancellationTimeout: NodeJS.Timeout | undefined;
+      try {
+        const [exitCode, terminationSignal] = await Promise.race([
+          closed,
+          new Promise<never>((_resolve, reject) => {
+            cancellationTimeout = setTimeout(
+              () =>
+                reject(
+                  new Error(
+                    `CLI did not finish cancellation within 5s: ${stderr}`,
+                  ),
+                ),
+              5_000,
+            );
+          }),
+        ]);
+        expect(terminationSignal, stderr).toBeNull();
+        expect(exitCode, stderr).toBe(expectedExitCode);
+        expect(JSON.parse(stdout)).toMatchObject({
+          code: "cancelled",
+          category: "cancelled",
+          details: { cleanup: "complete" },
+        });
+      } finally {
+        if (cancellationTimeout !== undefined)
+          clearTimeout(cancellationTimeout);
+      }
     } finally {
-      clearTimeout(timeout);
       try {
         if (child.exitCode === null && child.signalCode === null)
           child.kill("SIGKILL");
