@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 在应用中看到一个想加入自己产品的功能？让智能体用 REA 调查它。即使没有源代码，智能体也可以检查应用、解释功能的工作方式、展示证据，并为你的项目实现类似功能。

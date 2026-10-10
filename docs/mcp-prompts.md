@@ -1,6 +1,6 @@
 # Guided MCP prompts and completion
 
-REA exposes six provider-neutral investigation workflows through the MCP
+This fork exposes eleven investigation workflows through the MCP
 `prompts` capability. They complement the generated tool catalog; they do not add, remove, or
 invoke tools by themselves.
 
@@ -14,6 +14,17 @@ invoke tools by themselves.
 | `trace_crash`                     | Correlate a crash symptom with static paths and optional process capture evidence.   |
 | `audit_residual_unknowns`         | Audit current residual-unknown heads and evidence-qualified resolution.              |
 | `prepare_bounded_process_capture` | Design a bounded controlled process experiment before execution.                     |
+| `diligence_stablecoin`            | Examine redemption, reserves, effective control and settlement claims.               |
+| `diligence_protocol`              | Review DeFi asset, accounting, dependency, capacity and exit invariants.             |
+| `diligence_token`                 | Establish token controls, liquidity custody and position-specific exit evidence.     |
+| `diligence_payments`              | Trace authorization, custody, recovery, reconciliation and final settlement.         |
+| `diligence_competitor`            | Connect observable product mechanisms to distribution and commercial decisions.      |
+
+The five diligence prompts share their coverage questions with the local
+[diligence workspace](daniel-diligence.md). They require `subject` and
+`decision_question`; optional target, chain/state context and Evidence references
+are untrusted selections. Offline artifacts do not verify external terms or
+deployed behavior. Use the built customized checkout to access these prompts.
 
 Every rendered prompt provides optional starting points using current REA tool
 names. Agents can call tools directly, skip irrelevant suggestions, and inspect

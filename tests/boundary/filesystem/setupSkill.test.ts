@@ -195,6 +195,7 @@ describe("canonical skill transaction", () => {
       "android-applications.md",
       "runtime-observation.md",
       "evidence-workflows.md",
+      "daniel-diligence.md",
     ]) {
       const installed = await readFile(
         join(dirname(destination), "references", reference),
@@ -240,6 +241,7 @@ describe("canonical skill transaction", () => {
     const paths = [
       "SKILL.md",
       "references/android-applications.md",
+      "references/daniel-diligence.md",
       "references/evidence-workflows.md",
       "references/javascript-applications.md",
       "references/native-and-artifacts.md",

@@ -36,6 +36,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 <div dir="rtl">

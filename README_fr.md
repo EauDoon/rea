@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 Vous avez repéré dans une application une fonctionnalité que vous aimeriez avoir dans votre propre produit ? Demandez à votre agent de l'étudier avec REA. Il peut inspecter l'application sans son code source, expliquer le fonctionnement de la fonctionnalité, présenter les preuves et en construire une version pour votre projet.

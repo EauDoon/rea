@@ -46,6 +46,16 @@
 
 </div>
 
+## Daniel's customized fork
+
+This checkout adds stablecoin, DeFi, token, payment, and competitor diligence
+workflows for Daniel's research and integration decisions. Five MCP prompts
+guide the investigation; a local helper captures offline artifact Evidence and
+prepares an editable decision packet with explicit unknowns and dated sources.
+Use the built checkout for these additions; the upstream npm package does not
+contain this fork's customization. Start with the
+[personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 See a feature in an app that you want in your own product? Ask your agent to investigate it with REA. It can inspect the app without its source code, explain how the feature works, show the evidence, and build a version for your project.

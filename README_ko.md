@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 앱에서 내 제품에도 넣고 싶은 기능을 발견했나요? 에이전트에게 REA로 조사해 달라고 요청하세요. 소스 코드가 없어도 앱을 검사하고, 기능의 작동 원리를 설명하고, 근거를 보여 주고, 프로젝트에 맞는 기능을 구현할 수 있습니다.

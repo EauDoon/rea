@@ -1,4 +1,5 @@
 import type { TOOL_CONTRACTS } from "./toolContracts.js";
+import { DILIGENCE_PROMPTS } from "./diligenceProfiles.js";
 
 type ToolName = (typeof TOOL_CONTRACTS)[number]["name"];
 
@@ -399,4 +400,5 @@ export const PROMPT_CONTRACTS = [
       },
     ],
   },
+  ...DILIGENCE_PROMPTS,
 ] as const satisfies readonly PromptContract[];

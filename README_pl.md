@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 Widzisz w aplikacji funkcję, którą chcesz mieć we własnym produkcie? Poproś swojego agenta, aby zbadał ją za pomocą REA. Może przeanalizować aplikację bez jej kodu źródłowego, wyjaśnić działanie funkcji, pokazać dowody i stworzyć jej wersję dla Twojego projektu.

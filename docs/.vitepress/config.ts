@@ -19,6 +19,7 @@ export default defineConfig({
           { text: "Installation and setup", link: "/installation" },
           { text: "CLI and Evidence", link: "/cli" },
           { text: "Agent prompts", link: "/mcp-prompts" },
+          { text: "Daniel's diligence workflows", link: "/daniel-diligence" },
           { text: "Roadmap", link: "/roadmap" },
         ],
       },

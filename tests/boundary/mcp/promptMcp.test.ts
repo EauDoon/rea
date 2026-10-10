@@ -429,6 +429,26 @@ const MINIMUM_PROMPT_ARGUMENTS: Readonly<
     executable: "/usr/bin/true",
     working_directory: "/tmp",
   },
+  diligence_stablecoin: {
+    subject: "Selected stablecoin",
+    decision_question: "Can eligible holders redeem under stress?",
+  },
+  diligence_protocol: {
+    subject: "Selected vault",
+    decision_question: "Can we integrate withdrawals?",
+  },
+  diligence_token: {
+    subject: "Selected token",
+    decision_question: "Can the supplied position exit?",
+  },
+  diligence_payments: {
+    subject: "Selected payment flow",
+    decision_question: "Where does final settlement occur?",
+  },
+  diligence_competitor: {
+    subject: "Selected application",
+    decision_question: "Which feature should we prioritize?",
+  },
 };
 
 const lifecycleClient = (

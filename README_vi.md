@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 Bạn thấy một tính năng trong ứng dụng và muốn đưa nó vào sản phẩm của mình? Hãy nhờ tác nhân của bạn điều tra bằng REA. Tác nhân có thể kiểm tra ứng dụng mà không cần mã nguồn, giải thích cách tính năng hoạt động, đưa ra bằng chứng và xây dựng một phiên bản cho dự án của bạn.

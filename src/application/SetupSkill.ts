@@ -11,6 +11,7 @@ const SKILL_FILES = [
   "references/android-applications.md",
   "references/runtime-observation.md",
   "references/evidence-workflows.md",
+  "references/daniel-diligence.md",
 ] as const;
 
 interface CanonicalSkillFile {

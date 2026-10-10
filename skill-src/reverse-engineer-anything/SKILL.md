@@ -2,7 +2,7 @@
 name: reverse-engineer-anything
 description: Reverse engineer native, managed, Electron/JavaScript, packaged, firmware, and browser targets with REA. Use shipped-artifact or requested runtime evidence to explain features, compare versions, decompile code, or guide a reconstruction. Skip REA for ordinary source-repository architecture analysis.
 metadata:
-  version: "34"
+  version: "35"
 ---
 
 # REA
@@ -14,6 +14,13 @@ complete source repository, use normal repository tools and do not run REA
 readiness or provider commands.
 
 ## Connect only when needed
+
+For Daniel's stablecoin, DeFi, token, payment or competitor investigations in
+this customized fork, use [diligence workflows](references/daniel-diligence.md)
+when the requested decision needs shipped-artifact or captured-flow evidence.
+Discover the connected server's actual prompt inventory: the five `diligence_*`
+prompts are additions in this fork and are not assumed to exist in the upstream
+npm package. Ordinary complete source-repository analysis still uses source tools.
 
 Installing this skill supplies instructions; it does not register the REA MCP
 server, install analysis engines, or add tools to an already-running agent.

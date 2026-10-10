@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 アプリに、自分の製品にも取り入れたい機能を見つけましたか？エージェントに REA で調査を依頼してください。ソースコードがなくてもアプリを調べ、機能の仕組みを説明し、根拠を示したうえで、あなたのプロジェクト向けに実装できます。

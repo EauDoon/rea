@@ -46,6 +46,8 @@
 
 </div>
 
+Daniel's customized fork: [personalized workflow guide](docs/daniel-diligence.md).
+
 ---
 
 在應用中看到一個想加入自己產品的功能？讓 AI 代理用 REA 調查它。即使沒有原始碼，AI 代理也可以檢查應用、解釋功能的工作方式、展示證據，並為你的專案實現類似功能。

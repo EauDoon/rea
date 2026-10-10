@@ -80,6 +80,8 @@
   ],
   "scripts": {
     "deps:check": "node scripts/check-dependency-install.mjs",
+    "prediligence": "npm run build:cached",
+    "diligence": "node scripts/daniel-diligence.mjs",
     "metadata:generate": "node scripts/run-exclusive.mjs artifacts node scripts/generate-package-metadata.mjs",
     "metadata:check": "node scripts/generate-package-metadata.mjs --check",
     "mcp-registry:check": "node scripts/verify-mcp-registry-metadata.mjs",

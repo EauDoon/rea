@@ -24,7 +24,33 @@ Validate advertised JSON Schemas after SDK conversion against their declared dia
 
 ## Development
 
-Use [.nvmrc](.nvmrc) and `package.json#packageManager` for the pinned toolchain. Cursor Cloud may place older Node.js first on `PATH`; environment setup installs the pinned toolchain under `/usr/local/bin`.
+### Daniel's working defaults
+
+This EauDoon fork prioritizes stablecoin/redemption diligence, DeFi integration
+mechanisms, token controls and exit, payment settlement, and competitor product
+research. See [Daniel's diligence workflow](docs/daniel-diligence.md). The five
+`diligence_*` MCP prompts and local workspace helper share their coverage owner
+in `src/contracts/diligenceProfiles.ts`; change that owner when questions change.
+
+Lead investigation outputs with the decision and its evidence. Connect technical
+findings to user promises, asset flows, effective authority, executable liquidity
+and commercial obligations. Keep observations, derivations, inferences and
+unknowns distinct. Bind deployed claims to chain/address/implementation and
+block/time; offline bytecode candidates do not establish deployed behavior.
+Use current primary sources for external facts. Preserve units and exposure
+assumptions; never invent rates, position sizes or assurance probabilities.
+
+Write in plain American English, with concise connected prose and Singapore time
+for human-facing dates. Preserve uncertainty where it affects the decision.
+Use the existing isolated checkout in cloud tasks; create a worktree only when
+explicitly requested. Keep research packets under ignored `_reference/diligence/`
+or a caller-selected location outside the inspected artifact. Ordinary coding
+tasks do not require a dossier or a reverse-engineering readiness check.
+
+Use [.nvmrc](.nvmrc) and `package.json#packageManager` for the pinned toolchain.
+Cloud images may put a different Node.js version first on `PATH`; use the saved
+environment activation instructions. This prepared cloud environment stores its
+pinned tools under `/workspace/.rea-cloud/toolchains/`.
 
 - `npm ci`: install locked dependencies.
 - `npm run build:cached`: build the runtime and packaged skill.
