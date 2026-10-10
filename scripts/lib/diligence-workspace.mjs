@@ -21,6 +21,7 @@ import { DILIGENCE_PROFILES } from "../../dist/contracts/diligenceProfiles.js";
 import { parseEvidence } from "../../dist/domain/evidence.js";
 import { createEvmInterfaceService } from "../../dist/composition/evm.js";
 import { analyzeJavaScriptApplication } from "../../dist/application/javascript/JavaScriptApplicationService.js";
+import { loadDiligenceCaptures } from "./diligence-captures.mjs";
 
 const text = z
   .string()
@@ -55,6 +56,7 @@ const claimsSchema = z.array(
     status: z.enum(["unknown", "observed", "derived", "inferred"]),
     statement: text,
     evidence_ids: z.array(evidenceId),
+    capture_ids: z.array(text.regex(/^cap_[a-f0-9]{64}$/u)).default([]),
     source_ids: z.array(identifier),
     next_check: text,
   }),
@@ -186,6 +188,7 @@ export const initializeDiligenceWorkspace = async (options) => {
         status: "unknown",
         statement: "Not established.",
         evidence_ids: [],
+        capture_ids: [],
         source_ids: [],
         next_check: definition.questions[questionId],
       })),
@@ -237,7 +240,7 @@ const loadEvidence = async (root) => {
   return evidence;
 };
 
-const validateClaims = (case_, claims, sources, evidence) => {
+const validateClaims = ({ case_, claims, sources, evidence, captures }) => {
   const questions = DILIGENCE_PROFILES[case_.profile].questions;
   const suppliedQuestions = claims.map(({ question_id }) => question_id);
   if (
@@ -252,19 +255,24 @@ const validateClaims = (case_, claims, sources, evidence) => {
   if (sourceIds.size !== sources.length)
     throw new Error("Source identifiers must be unique");
   for (const claim of claims)
-    validateClaimReferences(claim, sourceIds, evidence);
+    validateClaimReferences(claim, sourceIds, evidence, captures);
   validateInitialCapture(case_, evidence);
 };
 
-const validateClaimReferences = (claim, sourceIds, evidence) => {
+const validateClaimReferences = (claim, sourceIds, evidence, captures) => {
   for (const id of claim.evidence_ids)
     if (!evidence.has(id)) throw new Error(`Missing Evidence reference: ${id}`);
   for (const id of claim.source_ids)
     if (!sourceIds.has(id))
       throw new Error(`Missing primary source reference: ${id}`);
+  for (const id of claim.capture_ids)
+    if (!captures.has(id)) throw new Error(`Missing capture reference: ${id}`);
   if (
     claim.status !== "unknown" &&
-    claim.evidence_ids.length + claim.source_ids.length === 0
+    claim.evidence_ids.length +
+      claim.source_ids.length +
+      claim.capture_ids.length ===
+      0
   )
     throw new Error(
       `A ${claim.status} claim needs cited evidence or a primary source: ${claim.question_id}`,
@@ -272,6 +280,7 @@ const validateClaimReferences = (claim, sourceIds, evidence) => {
   if (
     ["observed", "derived"].includes(claim.status) &&
     claim.source_ids.length === 0 &&
+    claim.capture_ids.length === 0 &&
     claim.evidence_ids.every((id) => evidence.get(id).confidence === "inferred")
   )
     throw new Error(
@@ -307,7 +316,7 @@ const validateInitialCapture = (case_, evidence) => {
 };
 
 /** Validate record integrity and citation coverage; analyst conclusions still require review. */
-export const renderDiligenceReport = async (directory) => {
+export const loadDiligenceWorkspace = async (directory) => {
   const root = await realpath(resolve(directory));
   const case_ = caseSchema.parse(
     await readRegularJson(join(root, "case.json")),
@@ -321,11 +330,24 @@ export const renderDiligenceReport = async (directory) => {
   if (!(await lstat(join(root, "evidence"))).isDirectory())
     throw new Error("Expected an ordinary Evidence directory, not a symlink");
   const evidence = await loadEvidence(root);
-  validateClaims(case_, claims, sources, evidence);
-  return renderMemo(case_, claims, sources, evidence);
+  const captures = await loadDiligenceCaptures(root);
+  validateClaims({ case_, claims, sources, evidence, captures });
+  return { root, case_, claims, sources, evidence, captures };
 };
 
-const renderMemo = (case_, claims, sources, evidence) => {
+export const renderDiligenceReport = async (directory) => {
+  const { case_, claims, sources, evidence, captures } =
+    await loadDiligenceWorkspace(directory);
+  return renderMemo({ case_, claims, sources, evidence, captures });
+};
+
+const renderCapture = ([id, record]) => {
+  if (record.kind === "source")
+    return `- ${id}: source ${markdown(record.subject.url)}; retrieved ${record.created_at}; body SHA-256 ${record.body_sha256}; ${record.byte_length} bytes. Scope: ${markdown(record.scope)}.`;
+  return `- ${id}: RPC-reported chain ${record.subject.chain_id}, address ${markdown(record.subject.address)}, block ${record.subject.block_number} (${record.subject.block_hash}); retrieved ${record.created_at}. Independent call simulations: ${record.probes.map((probe) => `${markdown(probe.id)}=${probe.status}`).join(", ") || "none"}.`;
+};
+
+const renderMemo = ({ case_, claims, sources, evidence, captures }) => {
   const definition = DILIGENCE_PROFILES[case_.profile];
   const unknowns = claims.filter(({ status }) => status === "unknown");
   const date = new Intl.DateTimeFormat("en-GB", {
@@ -347,13 +369,13 @@ Target: ${case_.target === null ? "No local artifact selected." : `${markdown(ca
 
 Chain/state context (analyst-supplied, unverified): ${markdown(case_.chain_context ?? "Not supplied.")}
 
-Claim text and external references are analyst-entered. This helper validates REA record integrity and citation coverage; it does not verify factual entailment, external page contents, deployed authenticity, fresh state or target behavior. An inferred finding remains an inference. Optional tests and audits are unperformed unless their actual results are attached.
+Claim text and source references are analyst-entered. This helper validates retained record integrity and citation coverage; it does not verify factual entailment. Source captures retain fetched bytes; RPC captures retain provider-reported code and state at the recorded block. Their authenticity, relevance and freshness require analyst review. Call simulations do not broadcast transactions or prove sequential behavior, execution inclusion, reserves or redemption. An inferred finding remains an inference. Optional tests and audits are unperformed unless their actual results are attached.
 
 ## Findings and open questions
 
 | Question | Status | Analyst statement | Evidence / sources | Next check or reopen trigger |
 | --- | --- | --- | --- | --- |
-${claims.map((claim) => `| ${markdown(definition.questions[claim.question_id])} | ${claim.status} | ${markdown(claim.statement)} | ${[...claim.evidence_ids, ...claim.source_ids].join(", ") || "None"} | ${markdown(claim.next_check)} |`).join("\n")}
+${claims.map((claim) => `| ${markdown(definition.questions[claim.question_id])} | ${claim.status} | ${markdown(claim.statement)} | ${[...claim.evidence_ids, ...claim.capture_ids, ...claim.source_ids].join(", ") || "None"} | ${markdown(claim.next_check)} |`).join("\n")}
 
 ## Artifact evidence
 
@@ -362,6 +384,10 @@ ${evidence.size === 0 ? "No REA Evidence captured." : [...evidence.values()].map
 ## Primary source register
 
 ${sources.length === 0 ? "No external primary sources recorded." : sources.map((source) => `- ${source.id}: ${markdown(source.url)}; retrieved ${source.retrieved_at}; scope: ${markdown(source.scope)}; limitations: ${source.limitations.map(markdown).join("; ") || "None declared by analyst."}`).join("\n")}
+
+## Retained network captures
+
+${captures.size === 0 ? "No network captures retained." : [...captures].map(renderCapture).join("\n")}
 
 ## Evidence to resolve next
 
