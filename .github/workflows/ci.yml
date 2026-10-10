@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch: {}
   push:
     branches: [main]
   pull_request:
@@ -117,7 +118,7 @@ jobs:
           node scripts/generate-skill-metadata.mjs
           node scripts/generate-product-catalog.mjs
           node scripts/generate-completion-ledger.mjs
-      - run: npm run test:ci:shard:run -- --shard=${{ matrix.shard }}
+      - run: npm run test:ci:shard:run -- --shard=${{ matrix.shard }} --reporter=github-actions
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
