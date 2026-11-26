@@ -15,13 +15,13 @@
     <a class="skip" href="#directory">Skip to component directory</a>
     <header>
       <strong><span class="mark" aria-hidden="true">⟐</span> REA</strong
-      ><a href="https://github.com/EauDoon/rea">EauDoon / rea ↗</a>
+      ><a href="https://github.com/EauDoon/rea">EauDoon / rea ↗︎</a>
     </header>
     <main>
       <h1>Diligence evidence map</h1>
       <p class="lede">
-        Follow a piece of evidence from collection to a cited decision. Each
-        component links to the code that owns it.
+        Trace source records, chain observations and case packets into a cited
+        decision.
       </p>
       <section id="explorer" hidden aria-label="Interactive evidence map">
         <div class="toolbar">
@@ -32,8 +32,21 @@
             <option value="chain">Chain observation to memo</option>
             <option value="restore">Restore and compare cases</option>
           </select>
-          <button id="reset" type="button">Reset view</button>
+          <button
+            id="reset"
+            type="button"
+            aria-label="Reset view"
+            title="Reset view"
+          >
+            <span aria-hidden="true">↶</span
+            ><span class="reset-label"> Reset view</span>
+          </button>
         </div>
+        <ol id="trace-steps" hidden aria-label="Trace order"></ol>
+        <a class="inspect-jump" href="#inspector"
+          >Inspect <strong id="current"></strong>
+          <span aria-hidden="true">↓</span></a
+        >
         <div class="layout">
           <div class="map-wrap">
             <div
@@ -43,18 +56,22 @@
               aria-label="Three-dimensional evidence flow"
               aria-describedby="controls"
             >
-              <svg id="lines" aria-hidden="true"></svg>
+              <svg id="lines" aria-hidden="true">
+                <g id="floor"></g>
+                <g id="flows"></g>
+                <g id="guides"></g>
+              </svg>
             </div>
             <p id="controls">
               Drag or use arrow keys to rotate. Tab to a component and press
               Enter to inspect it.
             </p>
           </div>
-          <aside aria-label="Selected component">
+          <aside id="inspector" tabindex="-1" aria-label="Selected component">
             <p class="eyebrow" id="layer"></p>
             <h2 id="selection"></h2>
             <p id="summary"></p>
-            <a id="code" href="#">Read source ↗</a>
+            <a id="code" href="#">Read source ↗︎</a>
             <h3>Connected components</h3>
             <ul id="neighbors"></ul>
           </aside>
@@ -220,7 +237,7 @@
       REA · EauDoon fork
       <a
         href="https://github.com/EauDoon/rea/blob/main/docs/daniel-diligence.md"
-        >Diligence workflow ↗</a
+        >Diligence workflow ↗︎</a
       >
     </footer>
   </body>

@@ -40,7 +40,6 @@
     },
   };
   const plot = byId("plot");
-  const lines = byId("lines");
   const route = byId("route");
   const buttons = new Map();
   let chosen = components.has(location.hash.slice(1))
@@ -56,50 +55,163 @@
 
   // A second starting layout leaves room for all eight labels on narrow screens.
   const narrow = {
-    profiles: [-130, -118, -18],
-    source: [-130, -58, 20],
-    chain: [130, -88, -20],
-    captures: [-120, 5, 15],
-    workspace: [130, -26, -10],
-    report: [130, 35, 10],
-    packet: [-120, 80, 3],
-    compare: [130, 112, 5],
+    source: [-130, -118, 0],
+    chain: [130, -118, -7],
+    captures: [-113, -54, 6],
+    profiles: [130, -54, -13],
+    workspace: [0, 8, 10],
+    report: [-130, 74, -10],
+    packet: [130, 72, 10],
+    compare: [0, 124, 3],
   };
+
+  const constrain = (n, low, high) => Math.max(low, Math.min(high, n));
 
   function renderProjection() {
     const { width, height } = plot.getBoundingClientRect();
-    const horizontal =
-      width < 560
-        ? Math.max(0, width - 130) / 260
-        : Math.max(0, width - 165) / 390;
-    const vertical = Math.max(0, height - 82) / 260;
-    const positions = new Map();
-    for (const node of viewNodes) {
-      const [x, y, z] = width < 560 ? narrow[node.id] : node.position;
+    if (!width || !height) return;
+    const small = width < 560;
+    const horizontal = small ? (width - 148) / 260 : (width - 175) / 390;
+    const vertical = (height - 80) / 260;
+    const project = (x, y, z) => {
       const rx = x * Math.cos(yaw) + z * Math.sin(yaw);
       const rz = z * Math.cos(yaw) - x * Math.sin(yaw);
       const ry = y * Math.cos(pitch) - rz * Math.sin(pitch);
       const depth = y * Math.sin(pitch) + rz * Math.cos(pitch);
-      const perspective = 670 / (670 - depth);
+      const scale = 670 / (670 - depth);
+      return {
+        x: width / 2 + rx * horizontal * scale,
+        y: height / 2 + ry * vertical * scale,
+        depth,
+      };
+    };
+
+    // The reference plane uses the same camera as the evidence nodes.
+    const floor = byId("floor");
+    const floorPath = svg("path");
+    const segments = [];
+    for (let i = -4; i <= 4; i++) {
+      for (const segment of [
+        [project(48 * i, 92, -170), project(48 * i, 92, 170)],
+        [project(-192, 92, 42 * i), project(192, 92, 42 * i)],
+      ]) {
+        const [a, b] = segment;
+        segments.push(`M ${a.x} ${a.y} L ${b.x} ${b.y}`);
+      }
+    }
+    floorPath.setAttribute("d", segments.join(" "));
+    floor.replaceChildren(floorPath);
+
+    const placed = [];
+    let congested = false;
+    const positions = new Map();
+    const guides = byId("guides");
+    guides.replaceChildren();
+    for (const node of viewNodes) {
+      const [worldX, worldY, worldZ] = small ? narrow[node.id] : node.position;
+      const anchor = project(worldX, worldY, worldZ);
+      if (node.id === chosen) {
+        const foot = project(worldX, 92, worldZ);
+        const stem = svg("path"),
+          ring = svg("ellipse");
+        stem.setAttribute("class", "stem");
+        stem.setAttribute(
+          "d",
+          `M ${anchor.x} ${anchor.y} L ${foot.x} ${foot.y}`,
+        );
+        ring.setAttribute("class", "foot");
+        ring.setAttribute("cx", foot.x);
+        ring.setAttribute("cy", foot.y);
+        ring.setAttribute("rx", "9");
+        ring.setAttribute("ry", "3.5");
+        floor.append(stem, ring);
+      }
       const button = buttons.get(node.id);
-      const halfWidth = button.offsetWidth / 2;
-      const px = Math.max(
-        halfWidth + 3,
+      const w = button.offsetWidth;
+      const h = button.offsetHeight;
+      const idealX = constrain(anchor.x, w / 2 + 4, width - w / 2 - 4);
+      const idealY = constrain(anchor.y, h / 2 + 4, height - h / 2 - 4);
+      // Nearest free rectangle can occur at an edge of a previously placed label.
+      const xs = [idealX, w / 2 + 4, width - w / 2 - 4],
+        ys = [idealY, h / 2 + 4, height - h / 2 - 4];
+      for (const box of placed) {
+        const dx = (box.w + w) / 2 + 5,
+          dy = (box.h + h) / 2 + 5;
+        xs.push(box.x - dx, box.x + dx);
+        ys.push(box.y - dy, box.y + dy);
+      }
+      let best = Infinity,
+        x = idealX,
+        y = idealY;
+      for (const cx of xs)
+        for (const cy of ys) {
+          if (
+            cx < w / 2 + 3 ||
+            cx > width - w / 2 - 3 ||
+            cy < h / 2 + 3 ||
+            cy > height - h / 2 - 3
+          )
+            continue;
+          const cost = (cx - idealX) ** 2 + (cy - idealY) ** 2;
+          if (
+            cost >= best ||
+            placed.some(
+              (r) =>
+                Math.abs(cx - r.x) < (w + r.w) / 2 + 4 &&
+                Math.abs(cy - r.y) < (h + r.h) / 2 + 4,
+            )
+          )
+            continue;
+          best = cost;
+          x = cx;
+          y = cy;
+        }
+      congested ||= !Number.isFinite(best);
+      const ax = constrain(anchor.x, 4, width - 4),
+        ay = constrain(anchor.y, 4, height - 4);
+      positions.set(node.id, [ax, ay]);
+      placed.push({ x, y, w, h, ax, ay, button, depth: anchor.depth });
+    }
+    if (congested) {
+      // Edge-on views can put every projection on a single line. Pack labels
+      // into rows while preserving the actual anchors and their leader lines.
+      const columns = Math.max(
+        1,
         Math.min(
-          width - halfWidth - 3,
-          width / 2 + rx * horizontal * perspective,
+          placed.length,
+          Math.floor(width / (Math.max(...placed.map((r) => r.w)) + 7)),
         ),
       );
-      const py = Math.max(
-        22,
-        Math.min(height - 22, height / 2 + ry * vertical * perspective),
-      );
-      button.style.left = px + "px";
-      button.style.top = py + "px";
-      button.style.zIndex = String(Math.round(depth) + 300);
-      positions.set(node.id, [px, py]);
+      const rows = Math.ceil(placed.length / columns);
+      const sorted = [...placed].sort((a, b) => a.ay - b.ay);
+      for (let r = 0; r < rows; r++) {
+        const row = sorted
+          .slice(r * columns, (r + 1) * columns)
+          .sort((a, b) => a.ax - b.ax);
+        row.forEach((box, i) => {
+          box.x = (width * (i + 0.5)) / row.length;
+          box.y = (height * (r + 0.5)) / rows;
+        });
+      }
     }
-    lines.replaceChildren();
+    for (const { x, y, w, h, ax, ay, button, depth } of placed) {
+      button.style.left = x + "px";
+      button.style.top = y + "px";
+      button.style.zIndex = String(Math.round(depth) + 300);
+      if (Math.abs(x - ax) > w / 2 || Math.abs(y - ay) > h / 2) {
+        const leader = svg("path"),
+          dot = svg("circle");
+        leader.setAttribute("class", "guide");
+        leader.setAttribute("d", `M ${ax} ${ay} L ${x} ${y}`);
+        dot.setAttribute("class", "anchor");
+        dot.setAttribute("cx", ax);
+        dot.setAttribute("cy", ay);
+        dot.setAttribute("r", "3");
+        guides.append(leader, dot);
+      }
+    }
+    const flows = byId("flows");
+    flows.replaceChildren();
     for (const edge of viewEdges) {
       const [x1, y1] = positions.get(edge.from);
       const [x2, y2] = positions.get(edge.to);
@@ -123,13 +235,14 @@
         `translate(${tipX} ${tipY}) rotate(${(Math.atan2(dy, dx) * 180) / Math.PI})`,
       );
       arrow.setAttribute("class", active ? "edge active" : "edge");
-      lines.append(path, arrow);
+      flows.append(path, arrow);
     }
   }
 
   function select(id, writeHash = true) {
     chosen = id;
     const node = components.get(id);
+    byId("current").textContent = node.title;
     byId("layer").textContent = node.layer;
     byId("selection").textContent = node.title;
     byId("summary").textContent = node.summary;
@@ -146,8 +259,10 @@
       const other = outgoing ? edge.to : edge.from;
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent =
-        (outgoing ? "To " : "From ") + components.get(other).title;
+      const direction = document.createElement("span");
+      direction.className = "direction";
+      direction.textContent = outgoing ? "To →" : "From";
+      button.append(direction, components.get(other).title);
       button.setAttribute(
         "aria-label",
         components.get(edge.from).title +
@@ -201,6 +316,14 @@
     for (const [id, button] of buttons) {
       button.hidden = !viewNodes.some((node) => node.id === id);
     }
+    const steps = byId("trace-steps");
+    steps.hidden = !trace.path;
+    steps.replaceChildren();
+    for (const id of trace.path || []) {
+      const item = document.createElement("li");
+      item.textContent = components.get(id).title;
+      steps.append(item);
+    }
     const selected = viewNodes.find((node) => node.id === chosen);
     select(selected?.id || trace.path[0], writeHash);
     byId("trace-note").textContent = trace.note;
@@ -211,6 +334,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "node";
+    button.dataset.layer = node.layer;
     button.textContent = node.title;
     button.setAttribute("aria-controls", "selection summary");
     button.onclick = () => select(node.id);
@@ -253,6 +377,11 @@
   plot.addEventListener("lostpointercapture", () => {
     dragging = null;
   });
+  document.querySelector(".inspect-jump").onclick = (event) => {
+    event.preventDefault();
+    byId("inspector").focus();
+    byId("inspector").scrollIntoView({ block: "start" });
+  };
   byId("reset").onclick = () => {
     yaw = 0;
     pitch = 0;
