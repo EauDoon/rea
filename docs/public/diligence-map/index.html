@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Trace the inputs, private case files and offline outputs of the EauDoon REA diligence workflow."
+    />
+    <title>Diligence evidence map · REA</title>
+    <link rel="stylesheet" href="map.css" />
+    <script src="map.js" defer></script>
+  </head>
+  <body>
+    <a class="skip" href="#directory">Skip to component directory</a>
+    <header>
+      <strong><span class="mark" aria-hidden="true">⟐</span> REA</strong
+      ><a href="https://github.com/EauDoon/rea">EauDoon / rea ↗</a>
+    </header>
+    <main>
+      <h1>Diligence evidence map</h1>
+      <p class="lede">
+        Follow a piece of evidence from collection to a cited decision. Each
+        component links to the code that owns it.
+      </p>
+      <section id="explorer" hidden aria-label="Interactive evidence map">
+        <div class="toolbar">
+          <label for="route">Trace</label>
+          <select id="route">
+            <option value="all">All components</option>
+            <option value="source">Source to memo</option>
+            <option value="chain">Chain observation to memo</option>
+            <option value="restore">Restore and compare cases</option>
+          </select>
+          <button id="reset" type="button">Reset view</button>
+        </div>
+        <div class="layout">
+          <div class="map-wrap">
+            <div
+              id="plot"
+              tabindex="0"
+              role="group"
+              aria-label="Three-dimensional evidence flow"
+              aria-describedby="controls"
+            >
+              <svg id="lines" aria-hidden="true"></svg>
+            </div>
+            <p id="controls">
+              Drag or use arrow keys to rotate. Tab to a component and press
+              Enter to inspect it.
+            </p>
+          </div>
+          <aside aria-label="Selected component">
+            <p class="eyebrow" id="layer"></p>
+            <h2 id="selection"></h2>
+            <p id="summary"></p>
+            <a id="code" href="#">Read source ↗</a>
+            <h3>Connected components</h3>
+            <ul id="neighbors"></ul>
+          </aside>
+        </div>
+        <p id="trace-note" role="status"></p>
+        <details id="data">
+          <summary>Read the displayed graph as JSON</summary>
+          <p>
+            Nodes and directed edges in the selected trace, in a GraphQL-shaped
+            response.
+          </p>
+          <button type="button" id="save">Download this view</button>
+          <pre id="json"></pre>
+        </details>
+      </section>
+      <section aria-labelledby="directory">
+        <h2 id="directory">Component directory</h2>
+        <p>
+          The relationships below follow the movement of evidence. Follow a
+          relationship to its destination or open the owning source file on
+          GitHub.
+        </p>
+        <ul id="components">
+          <li id="profiles" data-layer="Scope" data-position="-115,-75,-25">
+            <h3>Decision profiles</h3>
+            <p>
+              Each profile defines eight questions and a primary-source
+              checklist. Both the prompt and the local case use the same
+              profile.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/src/contracts/diligenceProfiles.ts"
+              >src/contracts/diligenceProfiles.ts</a
+            >
+            <ul class="relations">
+              <li>
+                supplies the questions for
+                <a href="#workspace">Case workspace</a>
+              </li>
+            </ul>
+          </li>
+          <li id="source" data-layer="Collect" data-position="-180,30,45">
+            <h3>Source snapshot</h3>
+            <p>
+              The source collector retains the response bytes, digest, retrieval
+              time and redirect history for one selected URL.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-source.mjs"
+              >scripts/lib/diligence-source.mjs</a
+            >
+            <ul class="relations">
+              <li>
+                saves a source record in <a href="#captures">Capture store</a>
+              </li>
+            </ul>
+          </li>
+          <li id="chain" data-layer="Collect" data-position="-50,100,-70">
+            <h3>Chain observation</h3>
+            <p>
+              The chain collector pins selected read-only observations to a
+              block and checks the chain and block identity again before
+              retaining the record.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-chain.mjs"
+              >scripts/lib/diligence-chain.mjs</a
+            >
+            <ul class="relations">
+              <li>
+                saves a chain record in <a href="#captures">Capture store</a>
+              </li>
+            </ul>
+          </li>
+          <li id="captures" data-layer="Retain" data-position="-20,8,65">
+            <h3>Capture store</h3>
+            <p>
+              Content-derived capture IDs bind the records to their contents.
+              Claims can cite these IDs after a reviewer checks the observation.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-captures.mjs"
+              >scripts/lib/diligence-captures.mjs</a
+            >
+            <ul class="relations">
+              <li>
+                provides validated captures to
+                <a href="#workspace">Case workspace</a>
+              </li>
+            </ul>
+          </li>
+          <li id="workspace" data-layer="Retain" data-position="42,-48,-40">
+            <h3>Case workspace</h3>
+            <p>
+              Case loading checks evidence, source and capture references
+              against the retained records and preserves unknown coverage.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-workspace.mjs"
+              >scripts/lib/diligence-workspace.mjs</a
+            >
+            <ul class="relations">
+              <li>
+                supplies validated claims to <a href="#report">Decision memo</a>
+              </li>
+              <li>
+                can be exported as a <a href="#packet">Portable packet</a>
+              </li>
+              <li>
+                supplies each case to <a href="#compare">Case comparison</a>
+              </li>
+            </ul>
+          </li>
+          <li id="report" data-layer="Review" data-position="155,-91,10">
+            <h3>Decision memo</h3>
+            <p>
+              The report prints a Markdown memo with claim status, citations and
+              open checks. Rendering reads the local case offline.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-workspace.mjs"
+              >scripts/lib/diligence-workspace.mjs</a
+            >
+          </li>
+          <li id="packet" data-layer="Transfer" data-position="175,17,-35">
+            <h3>Portable packet</h3>
+            <p>
+              Export preserves case files and hashes. Import checks the manifest
+              and validates the restored case in a new directory.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-packets.mjs"
+              >scripts/lib/diligence-packets.mjs</a
+            >
+            <ul class="relations">
+              <li>restores a new <a href="#workspace">Case workspace</a></li>
+            </ul>
+          </li>
+          <li id="compare" data-layer="Review" data-position="106,91,35">
+            <h3>Case comparison</h3>
+            <p>
+              Comparison reads two validated cases. It distinguishes changed
+              inputs and missing observations from changes to comparable
+              results.
+            </p>
+            <a
+              class="source"
+              href="https://github.com/EauDoon/rea/blob/main/scripts/lib/diligence-comparison.mjs"
+              >scripts/lib/diligence-comparison.mjs</a
+            >
+          </li>
+        </ul>
+      </section>
+    </main>
+    <footer>
+      REA · EauDoon fork
+      <a
+        href="https://github.com/EauDoon/rea/blob/main/docs/daniel-diligence.md"
+        >Diligence workflow ↗</a
+      >
+    </footer>
+  </body>
+</html>
