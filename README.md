@@ -55,6 +55,9 @@ prepares an editable decision packet with explicit unknowns and dated sources.
 Use the built checkout for these additions; the upstream npm package does not
 contain this fork's customization. Start with the
 [personalized workflow guide](docs/daniel-diligence.md).
+Open `docs/public/diligence-map/index.html` in your browser from a local clone
+to trace a source or chain observation into a decision memo, or follow an
+exported case through restoration and comparison. The map runs offline.
 
 ---
 

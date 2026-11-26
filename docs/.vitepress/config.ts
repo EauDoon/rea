@@ -20,6 +20,11 @@ export default defineConfig({
           { text: "CLI and Evidence", link: "/cli" },
           { text: "Agent prompts", link: "/mcp-prompts" },
           { text: "Daniel's diligence workflows", link: "/daniel-diligence" },
+          {
+            text: "Diligence evidence map",
+            link: "/diligence-map/index.html",
+            target: "_self",
+          },
           { text: "Roadmap", link: "/roadmap" },
         ],
       },

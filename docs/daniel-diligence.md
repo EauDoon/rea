@@ -27,13 +27,12 @@ running every available tool.
 
 ## Use the customized checkout
 
-Build with the pinned Node/npm versions from `.nvmrc` and `package.json`:
+From the root of this fork, activate the Node version in `.nvmrc` and the npm
+version in `package.json` with your normal version manager. Install the locked
+dependencies before the first build:
 
 ```bash
-cd /workspace/rea
-export PATH=/workspace/.rea-cloud/toolchains/npm-11.16.0/bin:/workspace/.rea-cloud/toolchains/node-v24.18.0-linux-x64/bin:$PATH
-export npm_config_cache=/workspace/.rea-cloud/npm-cache
-export NODE_USE_ENV_PROXY=1
+npm ci
 npm run build:cached
 node scripts/daniel-diligence.mjs profiles
 ```
@@ -42,9 +41,19 @@ node scripts/daniel-diligence.mjs profiles
 the helper. Use `npm run diligence -- init ...` or `npm run diligence -- report
 --case DIRECTORY` for the same workflow.
 
-The `/workspace/.rea-cloud/` toolchain paths are for this prepared cloud
-environment. Elsewhere, use the repository pins through your normal version
-manager. Each cloud task already has an isolated checkout.
+### Trace evidence through the fork
+
+Open `docs/public/diligence-map/index.html` from your clone. The documentation
+build also includes this page under `/rea/diligence-map/`. Choose **Source to
+memo** or **Chain observation to memo** to see which code collects the record,
+which code validates its identity and how the case cites it. **Restore and
+compare cases** shows how a private packet becomes a second validated workspace.
+
+Select a component to inspect its source and neighbors. Drag or use the arrow
+keys to rotate the view. The component directory lists the same relationships
+with JavaScript disabled. **Download this view** saves the selected trace as
+public architecture metadata. The page reads its own directory and never opens
+case files.
 
 Use this checkout's `node scripts/rea.mjs mcp` as the MCP stdio child. The
 upstream npm package does not contain this customization. Global client
